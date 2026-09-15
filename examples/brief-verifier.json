@@ -1,0 +1,63 @@
+{
+  "manifest_version": "0.1",
+  "identity": {
+    "id": "adamn/brief-verifier",
+    "version": "0.9.1",
+    "title": "Research brief verifier",
+    "description": "Audits a research brief against its cited sources: every load-bearing claim must resolve to a live source that actually supports it. Emits per-claim verdicts and a fix list. Migrated from the RCOS registry.",
+    "kind": "prompt-template",
+    "publisher": { "name": "adamn" },
+    "created": "2026-08-24",
+    "license": "MIT"
+  },
+  "contract": {
+    "inputs": [
+      { "name": "brief", "type": "string", "required": true, "description": "Markdown brief with citations." },
+      { "name": "strictness", "type": "string", "required": false, "description": "standard | adversarial." }
+    ],
+    "outputs": [
+      { "name": "verdict", "type": "string", "description": "ship | fix | blocked." },
+      { "name": "claim_report", "type": "array", "description": "Per-claim: supported / unsupported / dead-link." }
+    ],
+    "constraints": ["requires network for source verification"],
+    "side_effects": { "filesystem": "read", "network": "egress" },
+    "idempotent": true,
+    "timeout_s": 900
+  },
+  "implementation": {
+    "entrypoint": "templates/verify-brief.md",
+    "models": ["deepseek-v4-flash"],
+    "tools": ["webfetch"]
+  },
+  "routing": {
+    "domains": ["research", "knowledge"],
+    "task_signatures": ["verify a research brief", "check citations", "audit claims against sources"],
+    "prerequisites": [],
+    "compatibility": ["rcos", "pi", "claude-code", "opencode", "mcp"],
+    "suitability": {
+      "good_for": ["market research briefs", "technical due diligence", "publish-gate checks"],
+      "poor_fit": ["creative writing review", "code review"]
+    },
+    "cost_class": "low",
+    "latency_class": "minutes"
+  },
+  "evidence": {
+    "gate": { "type": "x2-ship" },
+    "verdicts": [
+      { "task_id": "famr-task-004", "verdict": "ship", "run_id": "run-b1", "at": "2026-08-24" },
+      { "task_id": "dsh-042", "verdict": "fix", "run_id": "run-b9", "at": "2026-09-01" },
+      { "task_id": "famr-task-012", "verdict": "ship", "run_id": "run-b2", "at": "2026-09-02" }
+    ],
+    "failure_modes": ["paywalled sources misread as unsupported", "non-English sources"]
+  },
+  "stats": {
+    "runs": { "verified": 15, "reuse": 12 },
+    "cost": { "median_usd": 0.04, "attestation": "reported" },
+    "reliability": { "ship_rate": 0.87, "window_days": 60, "attestation": "reported" },
+    "updated": "2026-09-13"
+  },
+  "lifecycle": {
+    "status": "promoted",
+    "admitted_after": ["famr-task-004", "famr-task-012"]
+  }
+}

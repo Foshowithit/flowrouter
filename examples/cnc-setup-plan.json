@@ -1,0 +1,82 @@
+{
+  "manifest_version": "0.1",
+  "identity": {
+    "id": "adamn/cnc-setup-plan",
+    "version": "0.3.0",
+    "title": "Drawing-to-setup-plan",
+    "description": "The flagship composition: 2D mechanical drawing in, machinist-reviewed setup plan out. Parses the drawing, extracts manufacturing semantics and tolerances, plans operations per machine, validates against machine limits, and packages an evidence bundle. Same intent routes to different capability graphs per environment — this manifest declares the reference composition.",
+    "kind": "composition",
+    "publisher": { "name": "adamn", "url": "https://flowrouter.work" },
+    "created": "2026-09-15",
+    "license": "MIT"
+  },
+  "contract": {
+    "inputs": [
+      { "name": "drawing", "type": "string", "required": true, "description": "Path to 2D drawing (PDF/DXF/PNG)." },
+      { "name": "machine", "type": "string", "required": false, "description": "Target machine profile id, e.g. haas-vf2." },
+      { "name": "material", "type": "string", "required": false, "description": "Stock material; inferred if omitted." }
+    ],
+    "outputs": [
+      { "name": "setup_plan", "type": "object", "description": "Ops, datums, workholding, tool list, speeds/feeds ranges." },
+      { "name": "evidence_pack", "type": "object", "description": "Tolerance table, risk notes, validation trace." }
+    ],
+    "constraints": ["vision step needs a multimodal lane", "deterministic given fixed drawing + models"],
+    "side_effects": { "filesystem": "write", "network": "egress", "spend_usd_max": 2.0 },
+    "idempotent": true,
+    "timeout_s": 1800
+  },
+  "implementation": {
+    "entrypoint": "dag/setup-plan.yaml",
+    "workflow": { "ref": "dag/setup-plan.yaml" },
+    "agents": ["mfg-planner", "risk-verifier"],
+    "models": ["deepseek-v4-flash", "muse-spark-1.3-contributor-free"],
+    "tools": ["ezdxf", "playwright"]
+  },
+  "routing": {
+    "domains": ["manufacturing", "cad", "machining"],
+    "task_signatures": [
+      "produce a setup plan from this drawing",
+      "how do I machine this part",
+      "extract tolerances and plan operations"
+    ],
+    "prerequisites": [
+      "adamn/drawing-parser",
+      "adamn/manufacturing-semantics",
+      "adamn/tolerance-extractor",
+      "adamn/machine-validator"
+    ],
+    "compatibility": ["rcos", "pi", "dsh", "mcp", "python"],
+    "suitability": {
+      "good_for": ["2D mechanical drawings", "3-axis mill setups", "GX-class mill jobs", "first-article planning"],
+      "poor_fit": ["3D-only assemblies without drawings", "additive print setups", "5-axis simultaneous toolpaths"]
+    },
+    "cost_class": "medium",
+    "latency_class": "minutes"
+  },
+  "evidence": {
+    "eval_suite": { "ref": "evals/suite.yaml" },
+    "fixtures": { "ref": "evals/fixtures/" },
+    "gate": { "type": "x2-ship" },
+    "verdicts": [
+      { "task_id": "cad-077", "verdict": "ship", "run_id": "run-s1", "at": "2026-09-15" }
+    ],
+    "failure_modes": ["faceted STEP input laundered as B-rep", "missing title block", "GD&T frames below 200dpi scan quality"]
+  },
+  "stats": {
+    "runs": { "verified": 1, "reuse": 0 },
+    "cost": { "median_usd": 0.85, "attestation": "reported" },
+    "latency": { "median_ms": 240000, "attestation": "reported" },
+    "reliability": { "ship_rate": 1.0, "window_days": 1, "attestation": "reported" },
+    "updated": "2026-09-15"
+  },
+  "composed_from": [
+    "adamn/drawing-parser",
+    "adamn/manufacturing-semantics",
+    "adamn/tolerance-extractor",
+    "adamn/machine-validator"
+  ],
+  "lifecycle": {
+    "status": "candidate",
+    "admitted_after": []
+  }
+}

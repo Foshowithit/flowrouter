@@ -1,0 +1,13 @@
+{
+  "manifest_version": "0.1",
+  "identity": {
+    "id": "not-namespaced",
+    "version": "1.0",
+    "title": "",
+    "description": "Intentionally broken fixture used by the validator self-test.",
+    "kind": "macro"
+  },
+  "lifecycle": {
+    "status": "retired"
+  }
+}

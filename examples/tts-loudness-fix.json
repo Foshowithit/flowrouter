@@ -1,0 +1,61 @@
+{
+  "manifest_version": "0.1",
+  "identity": {
+    "id": "adamn/tts-loudness-fix",
+    "version": "1.0.3",
+    "title": "VO loudness normalization",
+    "description": "Normalizes voiceover audio to broadcast loudness: edge-tts output in, AAC with loudnorm filter out, captions sidecar. Migrated from the RCOS registry with its full eval history.",
+    "kind": "script",
+    "publisher": { "name": "adamn" },
+    "created": "2026-08-30",
+    "license": "MIT"
+  },
+  "contract": {
+    "inputs": [
+      { "name": "vo", "type": "string", "required": true, "description": "Path to raw voiceover audio (wav/mp3)." },
+      { "name": "target_lufs", "type": "number", "required": false, "description": "Integrated loudness target, default -16." }
+    ],
+    "outputs": [
+      { "name": "vo_normalized", "type": "string", "description": "Path to normalized m4a/aac." },
+      { "name": "captions_vtt", "type": "string", "description": "WebVTT captions sidecar, 3+ cues." }
+    ],
+    "constraints": ["CPU-only", "no network", "deterministic for fixed input"],
+    "side_effects": { "filesystem": "write", "network": "none" },
+    "idempotent": true,
+    "timeout_s": 120
+  },
+  "implementation": {
+    "entrypoint": "scripts/loudnorm.py",
+    "scripts": ["scripts/loudnorm.py"],
+    "tools": ["ffmpeg"]
+  },
+  "routing": {
+    "domains": ["media", "audio"],
+    "task_signatures": ["normalize voiceover loudness", "make VO broadcast-ready"],
+    "compatibility": ["rcos", "python", "n8n"],
+    "suitability": {
+      "good_for": ["explainer VO", "demo narration"],
+      "poor_fit": ["music mastering", "live streams"]
+    },
+    "cost_class": "free",
+    "latency_class": "seconds"
+  },
+  "evidence": {
+    "gate": { "type": "x2-ship" },
+    "verdicts": [
+      { "task_id": "hog-w3-vo", "verdict": "ship", "run_id": "run-t1", "at": "2026-09-05" },
+      { "task_id": "expl-088", "verdict": "ship", "run_id": "run-t2", "at": "2026-09-07" }
+    ],
+    "failure_modes": ["clipped input audio (normalize before loudnorm)"]
+  },
+  "stats": {
+    "runs": { "verified": 22, "reuse": 61 },
+    "latency": { "median_ms": 4200, "attestation": "measured" },
+    "reliability": { "ship_rate": 0.95, "window_days": 30, "attestation": "measured" },
+    "updated": "2026-09-12"
+  },
+  "lifecycle": {
+    "status": "promoted",
+    "admitted_after": ["hog-w3-vo", "expl-088"]
+  }
+}
