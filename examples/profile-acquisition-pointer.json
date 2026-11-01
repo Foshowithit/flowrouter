@@ -4,7 +4,7 @@
     "id": "acme/tolerance-extractor",
     "version": "1.0.0",
     "title": "Tolerance extractor (acquired external candidate)",
-    "description": "SPEC section 7 example: a v0.1 manifest whose acquisition history lives outside it. acquisition.observation_ref is the canonical SHA-256 of the rcos-acquisition-observation/1 record maintained by RCOS (Foshowithit/rcos#65); the record itself is not duplicated here.",
+    "description": "Profiles/acquisition-observation-v1.md example: a v0.1 manifest whose acquisition history lives outside it. acquisition.observation_ref is the RFC 8785 canonical SHA-256 of the rcos-acquisition-observation/1 record maintained by RCOS (Foshowithit/rcos#65). The record is not duplicated here, and the base v0.1 validator treats this member as an unknown field it must ignore.",
     "kind": "tool",
     "publisher": {
       "name": "third-party-publisher",
