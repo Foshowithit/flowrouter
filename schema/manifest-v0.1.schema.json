@@ -205,10 +205,24 @@
           "then": { "required": ["retired_reason"] }
         }
       ]
+    },
+
+    "acquisition": {
+      "type": "object",
+      "required": ["observation_ref"],
+      "additionalProperties": false,
+      "properties": {
+        "observation_ref": { "$ref": "#/$defs/sha256Hex" }
+      }
     }
   },
 
   "$defs": {
+    "sha256Hex": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Canonical-form SHA-256, lowercase hex. Canonical form: UTF-8 bytes of json.dumps(record, sort_keys=True, separators=(',', ':')). See SPEC section 7."
+    },
     "semver": {
       "type": "string",
       "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"

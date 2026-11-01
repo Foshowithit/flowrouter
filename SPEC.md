@@ -181,4 +181,52 @@ Exit 0 = all valid. Exit 1 = at least one invalid, reasons printed.
 - **Payments/billing, private capabilities, semantic search vectors** — all
   additive future work.
 
+---
+
+## 7. Acquisition observations (additive)
+
+A capability published by one network and *acquired* from another (an external plugin,
+skill, bundle or repo) carries history the publisher cannot know: which upstream revision
+was seen, under what license, on what runtime, with what privileges, observed when by whom.
+
+That history MUST NOT be embedded in the manifest. A published manifest is immutable
+(rule 4), while acquisition knowledge is revised continuously; putting one inside the other
+forces either a manifest rewrite or frozen stale evidence. Instead:
+
+```jsonc
+"acquisition": {                       // OPTIONAL; its absence is a valid v0.1 manifest
+  "observation_ref": "5a82cccd…"       // required when present, 64-char lowercase sha256
+}
+```
+
+- **`acquisition` MUST NOT appear in a manifest that predates it.** Adding the member is
+  additive; no field that validated under earlier v0.1 text changes meaning (rule 1).
+- **`observation_ref` is an integrity claim.** It is the SHA-256 of the canonical form of
+  one `rcos-acquisition-observation/1` record: UTF-8 bytes of
+  `json.dumps(record, sort_keys=True, separators=(",", ":"))`, lowercase hex. A consumer
+  that is handed the record MUST compare digests, and a mismatch MUST be reported as a
+  failure rather than ignored.
+- **A pointer with no readable record behind it is UNVERIFIED**, never invalid and never
+  passing. Consumers MUST NOT treat the presence of a pointer as evidence of anything.
+- **`additionalProperties: false` on `acquisition` is deliberate.** It is the only place
+  v0.1 closes a subtree, and it closes only the one added here: observation data belongs
+  in the record, not in the manifest.
+- **The record is append-only.** Successors link to their predecessor's digest via
+  `predecessor_digest`; supersession names a successor digest. A record never contains its
+  own digest — that is circular and invalidates the checksum the moment the stamp is
+  written. Revision provenance for a document lives outside it.
+- **An observation is not proof of execution and not permission to run.** It records what
+  was seen by whom, when, and under what claimed rights and privileges. Promotion stays
+  with the `evidence.verdicts` / `x2-ship` gate in §3, evaluated independently of intake.
+
+Record shape and normative rules live on the acquiring side, in RCOS:
+`cap-intake-001/acquisition-extension/` in
+[Foshowithit/rcos#65](https://github.com/Foshowithit/rcos/pull/65) —
+`rcos-acquisition-observation/1`, 38 fixture cases, `B1–B5` unchanged plus `A0–A30`. This
+repo deliberately holds **no copy** of the record schema: a second definition would be a
+second registry, and the manifest side is fully expressible in v0.1 alone, so a FlowRouter
+consumer needs no RCOS code to validate a pointer.
+
+---
+
 Freeze rule: everything above is optional except `manifest_version` and `identity`.
