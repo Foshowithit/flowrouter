@@ -1,0 +1,58 @@
+{
+  "manifest_version": "0.1",
+  "identity": {
+    "id": "acme/tolerance-extractor",
+    "version": "1.0.0",
+    "title": "Tolerance extractor (acquired external candidate)",
+    "description": "Profiles/acquisition-observation-v1.md example: a v0.1 manifest whose acquisition history lives outside it. acquisition.observation_ref is the RFC 8785 canonical SHA-256 of the rcos-acquisition-observation/1 record maintained by RCOS (Foshowithit/rcos#65). The record is not duplicated here, and the base v0.1 validator treats this member as an unknown field it must ignore.",
+    "kind": "tool",
+    "publisher": {
+      "name": "third-party-publisher",
+      "url": "https://example.invalid/tolerance-extractor"
+    },
+    "created": "2026-11-01",
+    "license": "MIT"
+  },
+  "contract": {
+    "inputs": [
+      {
+        "name": "drawing",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "tolerances",
+        "type": "object"
+      }
+    ],
+    "constraints": [
+      "static inspection only during intake"
+    ],
+    "side_effects": {
+      "filesystem": "read",
+      "network": "none",
+      "spend_usd_max": 0
+    },
+    "idempotent": true,
+    "timeout_s": 300
+  },
+  "routing": {
+    "domains": [
+      "manufacturing",
+      "cad"
+    ],
+    "task_signatures": [
+      "extract tolerances from a 2D drawing"
+    ],
+    "compatibility": [
+      "dsh"
+    ],
+    "cost_class": "low",
+    "latency_class": "seconds"
+  },
+  "acquisition": {
+    "observation_ref": "5a82cccd6d737030e2faf31a5377990df0bf49b0c9fd05ece2a10801ed9c57b6"
+  }
+}
